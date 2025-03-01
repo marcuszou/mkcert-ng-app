@@ -2,9 +2,7 @@
 
 by Marcus Zou | 1 March 2025 | 3 minutes reading | 15 minutes practice
 
-
-
-<img src="https://words.filippo.io/content/images/2019/01/sticker-transparent.png" alt="mkcert" style="zoom:50%;" />
+![mkcert-logo](./assets/mkcert-logo.png)
 
 ## Why mkcert.org?
 
@@ -95,7 +93,7 @@ ng serve --ssl --ssl-cert "localhost+2.pem" --ssl-key "localhost+2-key.pem" --no
 
 Here is the SSL connection: https://localhost:4200
 
-![ssl-conn](assets\ng-site-http-ssl.png)
+![ssl-conn](./assets/ng-site-http-ssl.png)
 
 
 
