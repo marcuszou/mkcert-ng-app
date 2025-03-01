@@ -74,9 +74,18 @@ sudo apt install libnss3-tools
 ## Install mkcert
 sudo apt install mkcert
 
+## for macOS
+brew install mkcert
+
 ## Create local RootCA at `my-ng-app` folder
 mkcert -install
 mkcert example.com localhost 127.0.0.1 ::1
+## for macOS
+mkdir -p macbook
+cd macbook
+mkcert example.com localhost 127.0.0.1 ::1
+cd ..
+
 ## Created a new certificate valid for the following names 📜
 ## - "localhost"
 ## - "127.0.0.1"
@@ -89,6 +98,10 @@ Then re-launch the website by adding the ssl:
 
 ```shell
 ng serve --ssl --ssl-cert "localhost+2.pem" --ssl-key "localhost+2-key.pem" --no-hmr
+```
+For macOS
+```shell
+ng serve --ssl --ssl-cert "./macbook/localhost+2.pem" --ssl-key "./macbook/localhost+2-key.pem" --no-hmr
 ```
 
 Here is the SSL connection: https://localhost:4200
