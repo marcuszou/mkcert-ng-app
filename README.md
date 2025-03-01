@@ -46,6 +46,10 @@ sudo npm install -g npm@11.1.0
 # Install Angular
 sudo npm install -g @angular/cli@latest
 ```
+```shell
+## For macOS
+brew install @angular/cli@latest
+```
 
 Create a Angular website:
 
