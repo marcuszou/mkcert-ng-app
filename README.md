@@ -20,14 +20,14 @@ Make some pre-requisites ready:
 # Install common tools - Do Not install NodeJS/npm here as it's very low version.
 sudo apt update && sudo apt upgrade -y
 sudo apt install curl git htop nano net-tools wget tar unrar unzip zip tree -y
-# Install NodeJS 20.x
+# Install NodeJS 22.x (LTS)
 sudo apt update
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 node --version
-## v20.18.2
+## v22.14.0
 npm --version
-## 10.8.2
+## 10.9.2
 ```
 
 
@@ -72,7 +72,7 @@ Open the website: http://localhost:4200 as below:
 
 ## Install `mkcert` and Create the local CA
 
-Install `mkcert` package:
+Install `mkcert` tool:
 
 ```shell
 ## For Linux - if you use Firefox browser
@@ -95,30 +95,21 @@ Then create the certificate and key:
 
 ```shell
 ## Create local RootCA at `mkcert-ng-app` folder
-## For Linux
-mkdir linux
-cd linux
+## For Linux/macOS/WIndows
+mkdir devcerts
+cd devcerts
 mkcert -install
 mkcert localhost 127.0.0.1 ::1
 cd ..
+## Advanced method: run from the main folder and save the cert/key in the subfolder:
+mkcert -cert-file devcerts/cert.pem -key-file devcerts/key.pem localhost 127.0.0.1 ::1
 
-## for macOS
-mkdir -p macbook
-cd macbook
-mkcert localhost 127.0.0.1 ::1
-cd ..
-
-## for Windows
-mkdir windows
-cd windows
-mkcert localhost 127.0.0.1 ::1
-cd ..
-
+## The output be like:
 ## Created a new certificate valid for the following names 📜
 ## - "localhost"
 ## - "127.0.0.1"
 ## - "::1"
-##  The certificate is at "./localhost+2.pem" and the key at "./localhost+2-key.pem" ✅
+##  The certificate is at "devcerts/cert.pem" and the key at "devcerts/key.pem" ✅
 ##  It will expire on 1 June 2027 🗓
 ```
 
@@ -126,20 +117,15 @@ cd ..
 
 Then re-launch the website by adding the `RootCA`:
 
-For Linux
+For Linux/macOS
 
 ```shell
-ng serve --ssl --ssl-cert "./linux/localhost+2.pem" --ssl-key "./linux/localhost+2-key.pem" --no-hmr
+ng serve --ssl --ssl-cert "devcerts/cert.pem" --ssl-key "devcerts/key.pem" --no-hmr
 ```
-For macOS
-```shell
-ng serve --ssl --ssl-cert "./macos/localhost+2.pem" --ssl-key "./macos/localhost+2-key.pem" --no-hmr
-```
-
 For Windows
 
 ```shell
-ng serve --ssl --ssl-cert "windows\localhost+2.pem" --ssl-key "windows\localhost+2-key.pem" --no-hmr
+ng serve --ssl --ssl-cert "devcerts\cert.pem" --ssl-key "devcerts\key.pem" --no-hmr
 ```
 
 
