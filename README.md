@@ -202,5 +202,108 @@ Remember that `mkcert` is meant for development purposes, not production, so it 
 
 
 
+## localhost TLS through Nginx Docker
+
+1- Add `local.example` to hosts file:
+
+```
+sudo sh -c 'echo "127.0.0.1 localhost" >> /etc/hosts'
+```
+
+2- Create directories:
+
+```
+mkdir devcerts
+mkdir logs
+```
+
+3- Set up certificates with `mkcert`
+
+```
+# Install mkcert if needed
+# brew install mkcert
+
+mkcert --install
+mkcert -key-file devcerts/key.pem -cert-file devcerts/cert.pem localhost 127.0.0.1 ::1
+```
+
+4- Add `nginx-default.conf.template` for future volume mapping.
+
+```shell
+server {
+    listen 80;
+    server_name _;
+
+    # redirect all http request to https
+    rewrite ^/(.*)$ https://$host$request_uri? permanent; 
+}
+
+server {
+  server_name _;
+
+  location / {
+    # host.docker.internal needs to be used instead of localhost
+    # on Windows and Mac hosts which run Docker in a VM
+    proxy_pass http://host.docker.internal:${TARGET_PORT};
+
+    # Set headers so downstream app will know what URL the client is using
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $host:443;
+    proxy_set_header X-Forwarded-Port 443;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Forwarded-Proto https;
+  }
+
+  listen 443 ssl;
+  ssl_certificate /etc/nginx/certs/cert.pem;
+  ssl_certificate_key /etc/nginx/certs/key.pem;
+}
+```
+
+5- Edit the `docker-compose.yml` file as below:
+
+```shell
+services:
+
+  proxy:
+    network_mode: bridge
+    image: nginx:latest
+    environment:
+      # requests will be forwarded to http://<DOCKER_HOST>:<TARGET_PORT>
+      # This will be similar to accessing: http://localhost:8080
+      - TARGET_PORT=8080
+    volumes:
+      - './nginx-default.conf.template:/etc/nginx/templates/default.conf.template'
+      - './devcerts:/etc/nginx/certs'
+      - './logs:/var/log/nginx'
+    ports:
+      - '443:443'
+      - '80:80'
+```
+
+6- Fire up Nginx box:
+
+```
+docker compose up -d
+```
+
+This will start your application on port 8080, then access your service from `https://localhost`.
+
+> **NOTE:** HTTP does NOT use the system certificates, you must point to the mkcert's directly
+
+```
+http --verify="$(mkcert --CAROOT)/rootCA.pem" https://localhost
+```
+
+Or set up an alias:
+
+```
+alias http="http --verify=\"$(mkcert --CAROOT)/rootCA.pem\""
+```
+
+
+
 ## End
 
