@@ -51,6 +51,12 @@ sudo npm install -g @angular/cli@latest
 brew install @angular/cli@latest
 ```
 
+```shell
+## For Windows
+winget install nodejs-lts
+winget install @angular/cli@latest
+```
+
 Create a Angular website:
 
 ```shell
@@ -70,7 +76,7 @@ Open the website: http://localhost:4200 as below:
 
 ## Install `mkcert` and Create the local CA
 
-Lets make it happen:
+Install `mkcert` package:
 
 ```shell
 ## install pre-reuisites
@@ -81,13 +87,31 @@ sudo apt install mkcert
 ## for macOS
 brew install mkcert
 
-## Create local RootCA at `my-ng-app` folder
+## For Windows
+winget install mkcert
+```
+
+Then create the certificate and key:
+
+```shell
+## Create local RootCA at `mkcert-ng-app` folder
+## For Linux
+mkdir linux
+cd linux
 mkcert -install
-mkcert example.com localhost 127.0.0.1 ::1
+mkcert localhost 127.0.0.1 ::1
+cd ..
+
 ## for macOS
 mkdir -p macbook
 cd macbook
-mkcert example.com localhost 127.0.0.1 ::1
+mkcert localhost 127.0.0.1 ::1
+cd ..
+
+## for Windows
+mkdir windows
+cd windows
+mkcert localhost 127.0.0.1 ::1
 cd ..
 
 ## Created a new certificate valid for the following names 📜
@@ -98,19 +122,33 @@ cd ..
 ##  It will expire on 1 June 2027 🗓
 ```
 
-Then re-launch the website by adding the ssl:
+
+
+Then re-launch the website by adding the `RootCA`:
+
+For Linux
 
 ```shell
-ng serve --ssl --ssl-cert "localhost+2.pem" --ssl-key "localhost+2-key.pem" --no-hmr
+ng serve --ssl --ssl-cert "./linux/localhost+2.pem" --ssl-key "./linux/localhost+2-key.pem" --no-hmr
 ```
 For macOS
 ```shell
-ng serve --ssl --ssl-cert "./macbook/localhost+2.pem" --ssl-key "./macbook/localhost+2-key.pem" --no-hmr
+ng serve --ssl --ssl-cert "./macos/localhost+2.pem" --ssl-key "./macos/localhost+2-key.pem" --no-hmr
 ```
+
+For Windows
+
+```shell
+ng serve --ssl --ssl-cert "windows\localhost+2.pem" --ssl-key "windows\localhost+2-key.pem" --no-hmr
+```
+
+
 
 Here is the SSL connection: https://localhost:4200
 
 ![ssl-conn](./assets/ng-site-http-ssl.png)
+
+
 
 
 
