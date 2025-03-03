@@ -40,7 +40,7 @@ Install `Angular` engine for the web service:
 
 ```shell
 ## For Linux
-npm install -g @angular/cli@latest
+sudo npm install -g @angular/cli@latest
 ```
 ```shell
 ## For macOS
@@ -209,104 +209,99 @@ Remember that `mkcert` is meant for development purposes, not production, so it 
 
 ## localhost TLS through Nginx Docker
 
-1- Add `local.example` to hosts file:
+1- Build the custom image: Angular + Nginx with a `Dockerfile`:
 
 ```
-sudo sh -c 'echo "127.0.0.1 localhost" >> /etc/hosts'
+# Stage 1
+FROM node:alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2
+FROM nginx:alpine
+COPY --from=builder /app/dist/my-ng-app/browser /usr/share/nginx/html
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./devcerts /etc/nginx/certs
+EXPOSE 80
 ```
 
-2- Create directories:
+2- Create directories and generate new cert/key files:
 
 ```
 mkdir devcerts
+mkcert -certofile ./devcerts/cert.pem -key-file ./devcerts/key.pem localhost 127.0.0.1 ::1
+
 mkdir logs
 ```
 
-3- Set up certificates with `mkcert`
-
-```
-# Install mkcert if needed
-# brew install mkcert
-
-mkcert --install
-mkcert -key-file devcerts/key.pem -cert-file devcerts/cert.pem localhost 127.0.0.1 ::1
-```
-
-4- Add `nginx-default.conf.template` for future volume mapping.
+3- Add `nginx.conf` for future.
 
 ```shell
-server {
+events{}
+
+http {
+  
+  include /etc/nginx/mime.types;
+  
+  server {
     listen 80;
-    server_name _;
+    server_name localhost;
+    #return 301 https://$host$request_uri;
 
-    # redirect all http request to https
-    rewrite ^/(.*)$ https://$host$request_uri? permanent; 
-}
+    location / {
+      try_files $uri $uri/ /index.html =404;
+    }
 
-server {
-  server_name _;
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+    }
 
-  location / {
-    # host.docker.internal needs to be used instead of localhost
-    # on Windows and Mac hosts which run Docker in a VM
-    proxy_pass http://host.docker.internal:${TARGET_PORT};
-
-    # Set headers so downstream app will know what URL the client is using
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Host $host:443;
-    proxy_set_header X-Forwarded-Port 443;
-    proxy_set_header X-Forwarded-Server $host;
-    proxy_set_header X-Forwarded-Proto https;
+    location / {
+        #proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
   }
 
-  listen 443 ssl;
-  ssl_certificate /etc/nginx/certs/cert.pem;
-  ssl_certificate_key /etc/nginx/certs/key.pem;
+  server {
+    listen 443 ssl;
+    server_name localhost;
+
+    ssl_certificate /etc/nginx/certs/cert.pem;
+    ssl_certificate_key /etc/nginx/certs/key.pem;
+
+    location = /favicon.ico {
+      access_log off; 
+      log_not_found off;
+    }
+
+    location / {
+      #proxy_pass http://localhost:8000;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+  }
 }
+
 ```
 
-5- Edit the `docker-compose.yml` file as below:
+4- Run commands as below:
 
 ```shell
-services:
-
-  proxy:
-    network_mode: bridge
-    image: nginx:latest
-    environment:
-      # requests will be forwarded to http://<DOCKER_HOST>:<TARGET_PORT>
-      # This will be similar to accessing: http://localhost:8080
-      - TARGET_PORT=8080
-    volumes:
-      - './nginx-default.conf.template:/etc/nginx/templates/default.conf.template'
-      - './devcerts:/etc/nginx/certs'
-      - './logs:/var/log/nginx'
-    ports:
-      - '443:443'
-      - '80:80'
+docker build -t ang-cert .
+docker run -d -p 80:80 ang-cert
 ```
 
-6- Fire up Nginx box:
+This will start your application on port 80, then access your service from `http://localhost` and `https://localhost`.
 
-```
-docker compose up -d
-```
-
-This will start your application on port 8080, then access your service from `https://localhost`.
-
-> **NOTE:** HTTP does NOT use the system certificates, you must point to the mkcert's directly
-
-```
-http --verify="$(mkcert --CAROOT)/rootCA.pem" https://localhost
-```
-
-Or set up an alias:
-
-```
-alias http="http --verify=\"$(mkcert --CAROOT)/rootCA.pem\""
-```
 
 
 
