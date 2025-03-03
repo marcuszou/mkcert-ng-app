@@ -28,19 +28,19 @@ node --version
 ## v22.14.0
 npm --version
 ## 10.9.2
+# Update npm
+sudo npm install -g npm@latest
 ```
 
 
 
 ## Create a simple Angular website
 
-Install `Angular` for the web service:
+Install `Angular` engine for the web service:
 
 ```shell
-# Update npm
-sudo npm install -g npm@11.1.0
-# Install Angular
-sudo npm install -g @angular/cli@latest
+## For Linux
+npm install -g @angular/cli@latest
 ```
 ```shell
 ## For macOS
@@ -95,10 +95,15 @@ Then create the certificate and key:
 
 ```shell
 ## Create local RootCA at `mkcert-ng-app` folder
-## For Linux/macOS/WIndows
+## For Linux/macOS/Windows
+mkcert -install
+## Where is the RootCA?
+mkcert -CAROOT
+## /home/zenusr/.local/share/mkcert
+
+## create a simple certificate in subfolder: devcerts
 mkdir devcerts
 cd devcerts
-mkcert -install
 mkcert localhost 127.0.0.1 ::1
 cd ..
 ## Advanced method: run from the main folder and save the cert/key in the subfolder:
