@@ -94,8 +94,7 @@ winget install mkcert
 Then create the certificate and key:
 
 ```shell
-## Create local RootCA at `mkcert-ng-app` folder
-## For Linux/macOS/Windows
+## Install the local RootCA service in Linux/macOS/Windows
 mkcert -install
 ## Where is the RootCA?
 mkcert -CAROOT
@@ -103,11 +102,7 @@ mkcert -CAROOT
 
 ## create a simple certificate in subfolder: devcerts
 mkdir devcerts
-cd devcerts
-mkcert localhost 127.0.0.1 ::1
-cd ..
-## Advanced method: run from the main folder and save the cert/key in the subfolder:
-mkcert -cert-file devcerts/cert.pem -key-file devcerts/key.pem localhost 127.0.0.1 ::1
+mkcert -cert-file ./devcerts/cert.pem -key-file ./devcerts/key.pem localhost 127.0.0.1 ::1
 
 ## The output be like:
 ## Created a new certificate valid for the following names 📜
